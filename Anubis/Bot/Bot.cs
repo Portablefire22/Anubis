@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Anubis.Config;
+using Anubis.Database.Models;
 using Anubis.Logging;
 using Anubis.Scanner;
 using Microsoft.Extensions.Logging;
@@ -64,23 +65,47 @@ public class Bot
    private async ValueTask OnMessageCreate(Message message)
    {
       var content = message.Content;
+      if (message.GuildId == null) return;
       var wasMatch = false;
       var matches = GlobalConfiguration.UrlRegex.Matches(content);
+      HashSetting? hash = null;
       foreach (Match match in matches)
       {
          var str = match.Value;
-         if (await Scales.CheckForbidden(str))
+         hash = await Scales.CheckForbidden((ulong)message.GuildId, str);
+         if (hash != null)
          {
             wasMatch = true;
             break;
          }
       }
 
-      if (!wasMatch) return;
+      if (!wasMatch || hash == null) return;
       await message.DeleteAsync();
 
-      await SendModLog(message);
-      await SendWarningInDm(message.Author);
+      var bitfield = hash.Punishment;
+      
+      // Punishments
+      if ((bitfield & (uint)HashPunishment.DirectMessage) == 1)
+      {
+         await SendWarningInDm(message.Author);
+      }
+      
+      if ((bitfield & (uint)HashPunishment.Ban) != 0)
+      {
+         await _client.Rest.BanGuildUserAsync(hash.Guild.Id, message.Author.Id);
+      } 
+      else if ((bitfield & (uint)HashPunishment.Timeout) != 0)
+      {
+         var user = await _client.Rest.GetGuildUserAsync(hash.Guild.Id, message.Author.Id);
+         var duration = hash.PunishmentDuration == -1 ? TimeSpan.FromDays(365 * 30) : TimeSpan.FromMinutes(hash.PunishmentDuration);
+         await user.TimeOutAsync(DateTimeOffset.UtcNow + duration);
+      }
+      
+      if (hash.Guild.LogChannel != 0)
+      {
+         await SendModLog(message);
+      }
    }
 
    private async Task SendModLog(RestMessage original)
