@@ -1,16 +1,15 @@
 ﻿using System.Text.RegularExpressions;
-using Anubis.Anubis.Config;
-using Anubis.Anubis.Logging;
-using Anubis.Anubis.Scanner;
+using Anubis.Config;
+using Anubis.Logging;
+using Anubis.Scanner;
 using Microsoft.Extensions.Logging;
 using NetCord;
 using NetCord.Gateway;
-using NetCord.Logging;
 using NetCord.Rest;
 using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
-namespace Anubis.Anubis.Bot;
+namespace Anubis.Bot;
 
 public class Bot
 {
@@ -34,8 +33,8 @@ public class Bot
 
    private async Task RegisterCommands()
    {
-      _commandService.AddSlashCommand(new SlashCommandBuilder("hello", "Hello, World!", () => "Hello, World!"));
       _commandService.AddModules(typeof(Program).Assembly); 
+      
       _client.InteractionCreate += async interaction =>
       {
          if (interaction is not ApplicationCommandInteraction applicationCommandInteraction)
@@ -59,27 +58,29 @@ public class Bot
 
    public void RegisterEvents()
    {
-      _client.MessageCreate += async message =>
+      _client.MessageCreate += OnMessageCreate;
+   }
+
+   private async ValueTask OnMessageCreate(Message message)
+   {
+      var content = message.Content;
+      var wasMatch = false;
+      var matches = GlobalConfiguration.UrlRegex.Matches(content);
+      foreach (Match match in matches)
       {
-         var content = message.Content;
-         var wasMatch = false;
-         var matches = GlobalConfiguration.UrlRegex.Matches(content);
-         foreach (Match match in matches)
+         var str = match.Value;
+         if (await Scales.CheckForbidden(str))
          {
-            var str = match.Value;
-            if (await Scales.CheckForbidden(str))
-            {
-               wasMatch = true;
-               break;
-            }
+            wasMatch = true;
+            break;
          }
+      }
 
-         if (!wasMatch) return;
-         await message.DeleteAsync();
+      if (!wasMatch) return;
+      await message.DeleteAsync();
 
-         await SendModLog(message);
-         await SendWarningInDm(message.Author);
-      };
+      await SendModLog(message);
+      await SendWarningInDm(message.Author);
    }
 
    private async Task SendModLog(RestMessage original)
@@ -103,7 +104,9 @@ public class Bot
       RegisterEvents();
 
       await _client.StartAsync();
-      _logger.LogInformation("Bot Started.");
+
+      var us = await _client.Rest.GetCurrentUserAsync();
+      _logger.LogInformation($"Bot initiated as '{us.Username}#{us.Discriminator}'");
    }
    
 }

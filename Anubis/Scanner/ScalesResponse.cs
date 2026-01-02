@@ -1,4 +1,4 @@
-﻿namespace Anubis.Anubis.Scanner;
+﻿namespace Anubis.Scanner;
 
 public class ScalesResponse
 {

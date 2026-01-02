@@ -1,14 +1,16 @@
-﻿using Anubis.Anubis.Scanner;
-using NetCord.Rest;
+﻿using Anubis.Scanner;
+using NetCord;
 using NetCord.Services.ApplicationCommands;
 
-namespace Anubis.Anubis.Commands;
+namespace Anubis.Commands;
 
 public class ScalesModule : ApplicationCommandModule<ApplicationCommandContext>
 {
     
-    [SlashCommand("addimage", "Add image :3")]
-    public static async Task<string> AddImage(
+    [SlashCommand("blacklistcontent", "Blacklists a URL's content.", 
+        DefaultGuildPermissions = Permissions.ManageMessages,
+        Contexts = [InteractionContextType.Guild])]
+    public static async Task<string> BlacklistContent(
         [SlashCommandParameter(Description = "URL of content to blacklist")] string url)
     {
         var resp = await Scales.AddImage(url);

@@ -1,8 +1,6 @@
-﻿using Anubis.Anubis.Config;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace Anubis.Anubis.Logging;
+namespace Anubis.Logging;
 
 public static class LoggingProvider
 {

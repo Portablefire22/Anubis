@@ -1,8 +1,7 @@
 ﻿using System.Text.RegularExpressions;
-using Anubis.Abubis.Config;
 using Microsoft.Extensions.Configuration;
 
-namespace Anubis.Anubis.Config;
+namespace Anubis.Config;
 
 public class GlobalConfiguration
 {

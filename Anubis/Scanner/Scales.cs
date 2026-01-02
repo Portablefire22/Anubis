@@ -1,8 +1,8 @@
 ﻿using System.Security.Cryptography;
-using Anubis.Anubis.Logging;
+using Anubis.Logging;
 using Microsoft.Extensions.Logging;
 
-namespace Anubis.Anubis.Scanner;
+namespace Anubis.Scanner;
 
 public static class Scales
 {

@@ -1,6 +1,6 @@
 ﻿using NetCord;
 
-namespace Anubis.Abubis.Config;
+namespace Anubis.Config;
 
 public class DiscordConfig
 {
