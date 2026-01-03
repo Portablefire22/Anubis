@@ -59,7 +59,7 @@ public static class Scales
 
         var hashSetting = new HashSetting()
         {
-            Guild = (await GetGuild(ctx, guildId, true))!, // This should never be null with createMissing
+            Guild = (await GetGuild(ctx, guildId, true))!, // This should never be null since we create if the guild wasn't found
             Hash = hash,
             Punishment = punishment,
             PunishmentDuration = punishmentDuration
@@ -78,7 +78,7 @@ public static class Scales
         };
     }
 
-    private static async Task<Guild?> GetGuild(AnubisContext ctx, ulong guildId, bool createMissing = false)
+    public static async Task<Guild?> GetGuild(AnubisContext ctx, ulong guildId, bool createMissing = false)
     {
         var guild = await ctx.Guilds.FirstOrDefaultAsync(x => x.Id == guildId);
         if (guild != null || !createMissing) return guild;

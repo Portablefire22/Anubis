@@ -104,13 +104,13 @@ public class Bot
       
       if (hash.Guild.LogChannel != 0)
       {
-         await SendModLog(message);
+         await SendModLog(hash.Guild.LogChannel, message);
       }
    }
 
-   private async Task SendModLog(RestMessage original)
+   private async Task SendModLog(ulong logChannel, RestMessage original)
    {
-      await _client.Rest.SendMessageAsync(original.ChannelId, new MessageProperties()
+      await _client.Rest.SendMessageAsync(logChannel, new MessageProperties()
       {
          Content = GlobalConfiguration.Discord.GetModLogMessage(original.Author)
       });
