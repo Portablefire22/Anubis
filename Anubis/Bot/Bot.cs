@@ -104,15 +104,54 @@ public class Bot
       
       if (hash.Guild.LogChannel != 0)
       {
-         await SendModLog(hash.Guild.LogChannel, message);
+         await SendModLog(hash, message);
       }
    }
 
-   private async Task SendModLog(ulong logChannel, RestMessage original)
+   private async Task SendModLog(HashSetting setting, RestMessage original)
    {
-      await _client.Rest.SendMessageAsync(logChannel, new MessageProperties()
+      
+      var author = original.Author;
+
+      var duration = setting.PunishmentDuration == -1 ? "Permanent" : setting.PunishmentDuration.ToString();
+      
+      var embed = new EmbedProperties()
+         {
+            Title = "Blacklisted content deleted",
+            Description = $"{original.Content}",
+            Timestamp = DateTimeOffset.UtcNow,
+            Color = new(0x690000),
+            Footer = new()
+            {
+               Text = $"User ID: {author.Id}",
+            },
+            Author = new()
+            {
+               Name = $"{author.Username}",
+               Url = $"https://discord.com/users/{author.Id}",
+               IconUrl = $"{author.GetAvatarUrl()??author.DefaultAvatarUrl}",
+            },
+            Fields =
+            [
+               new ()
+               {
+                  Name = "Actions",
+                  Value = $"Direct Messaged: {(setting.Punishment & (uint)HashPunishment.DirectMessage) != 0}\n" 
+                  + $"Banned: {(setting.Punishment & (uint)HashPunishment.Ban) != 0}\n"
+                  + $"Timeout: {(setting.Punishment & (uint)HashPunishment.Timeout) != 0}\n" + 
+                  $"Duration (if applicable): {duration}"
+               }, 
+               new()
+               {
+               Name = "Message ID",
+               Value = $"{original.Id}",
+               Inline = true
+               },
+            ],
+         }; 
+      await _client.Rest.SendMessageAsync(setting.Guild.LogChannel, new MessageProperties()
       {
-         Content = GlobalConfiguration.Discord.GetModLogMessage(original.Author)
+         Embeds = new []{embed} 
       });
    }
    
